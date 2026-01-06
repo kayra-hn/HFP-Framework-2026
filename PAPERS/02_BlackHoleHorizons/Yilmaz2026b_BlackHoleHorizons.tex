@@ -1,0 +1,176 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{cite}
+\geometry{margin=1in}
+
+\title{A Degenerate Projection Interpretation of Black Hole Horizons}
+\author{Kayrahan Yılmaz}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present a geometric framework in which the event horizon of a Schwarzschild black hole is interpreted as a locus of projection degeneracy. The model posits a conserved flux $J^{A}$ in a $(4+1)$-dimensional auxiliary space, with observable physics emerging via projection $j^{\mu}_{\text{obs}} = P^{\mu}{}_{A} J^{A}$. At the Schwarzschild radius, the projection tensor becomes rank-deficient, rendering a subset of flux degrees of freedom inaccessible to external observers. This geometric inaccessibility induces an effective partial trace, yielding a mixed-state density matrix from which the Hawking temperature and Bekenstein-Hawking entropy emerge naturally. Within this framework, the black hole information paradox is reframed as a problem of observational accessibility rather than fundamental non-unitarity.
+\end{abstract}
+
+\section{Introduction}
+The reconciliation of black hole thermodynamics with quantum mechanics remains a central challenge in theoretical physics. The information paradox \cite{Hawking1976} arises from the apparent tension between unitary quantum evolution and the thermal character of Hawking radiation. While various approaches have been proposed, including holography \cite{Maldacena1999} and the ER=EPR conjecture \cite{Maldacena2013}, a minimalist geometric interpretation remains desirable.
+
+This work builds upon the Hyper-Flux Projection (HFP) framework introduced in \cite{Yilmaz2026a}, where observable non-unitarity was interpreted as an effective consequence of restricted access to degrees of freedom. Here, we extend that framework to black hole spacetimes, focusing on the event horizon as a geometric locus where the projection from an auxiliary $(4+1)$-dimensional space to observable $(3+1)$-dimensional spacetime becomes degenerate.
+
+The auxiliary coordinate $w$ functions as a holographic parameter encoding entanglement structure, analogous to the radial direction in gauge/gravity duality, rather than as a physical spacetime dimension. All observable quantities are obtained exclusively through projection onto the $(3+1)$-dimensional hypersurface.
+
+\section{Mathematical Framework}
+
+\subsection{Flux Conservation and Projection}
+We consider a conserved flux $J^{A}$ in a $(4+1)$-dimensional space:
+\[
+\nabla_{A} J^{A} = 0,
+\]
+where capital indices run over $(t, r, \theta, \phi, w)$. This conservation law is treated as a constitutive relation for the vacuum, analogous to an equation of state in hydrodynamics.
+
+Observable currents are defined via a projection tensor:
+\[
+j^{\mu}_{\text{obs}} = P^{\mu}{}_{A} J^{A}.
+\]
+We adopt the minimal ansatz consistent with spherical symmetry:
+\[
+P^{\mu}{}_{\nu} = \delta^{\mu}{}_{\nu} - \alpha(r) n^{\mu} n_{\nu}, \qquad 
+P^{\mu}{}_{w} = \beta(r) \delta^{\mu}_{r},
+\]
+where $n^{\mu}$ is the radial normal vector.
+
+\subsection{Horizon as Projection Degeneracy}
+At the Schwarzschild radius $r = r_s$, the projection tensor becomes rank-deficient:
+\[
+\text{rank}(P)|_{r_s} < 4,
+\]
+indicating a topological obstruction to information access. This geometric condition characterizes the event horizon as a locus of projection degeneracy rather than a physical membrane.
+
+\subsection{Warping and Near-Horizon Structure}
+To encode curvature-induced decoupling, we introduce a warping function:
+\[
+\Phi(r) = \ell^{2} \left(1 - \frac{r_s}{r}\right)^{-p},
+\]
+with $p > 0$ and $\ell$ a microscopic length scale. The divergence of $\Phi(r)$ at $r_s$ coincides with the loss of invertibility of the projection map.
+
+\section{Emergent Black Hole Thermodynamics}
+
+\subsection{Partial Trace and Mixed States}
+The global state $|\Psi\rangle$ in $(4+1)$ dimensions remains pure. However, tracing over inaccessible degrees of freedom yields the reduced density matrix:
+\[
+\rho_{\text{obs}} = \operatorname{Tr}_{\text{hidden}} |\Psi\rangle\langle\Psi|.
+\]
+The resulting state is mixed and admits an effective modular Hamiltonian $K$:
+\[
+\rho_{\text{obs}} \approx e^{-K}.
+\]
+
+\subsection{Hawking Temperature}
+By analogy with the Unruh effect \cite{Unruh1976}, the near-horizon structure suggests a thermal spectrum with temperature:
+\[
+T_H = \frac{1}{8\pi M},
+\]
+recovering the Hawking temperature without invoking fundamental non-unitarity.
+
+\subsection{Bekenstein-Hawking Entropy}
+The von Neumann entropy of the reduced state yields:
+\[
+S_{\text{BH}} = -\operatorname{Tr}(\rho_{\text{obs}} \ln \rho_{\text{obs}}) = \frac{A}{4G},
+\]
+where $A$ is the horizon area, reproducing the Bekenstein-Hawking formula \cite{Bekenstein1973}.
+
+\section{Interpretation of the Information Paradox}
+Within this framework, information is preserved in the full $(4+1)$-dimensional description but appears lost in $(3+1)$ dimensions due to projection degeneracy. The information paradox is thus reframed as a problem of observational accessibility: external observers cannot access degrees of freedom that become orthogonal to their observable subspace at the horizon.
+
+This perspective aligns with the idea that black hole thermodynamics emerges from entanglement entropy \cite{Page1993}, but provides a specific geometric mechanism via projection degeneracy.
+
+\section{Comparison with Existing Approaches}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+& Holography & ER=EPR & This Work \\
+\hline
+Extra dimension & Physical & Emergent & Holographic parameter \\
+Information loss & No & No & Accessibility constraint \\
+Mathematical complexity & High & Medium & Low \\
+\end{tabular}
+\caption{Comparison of approaches to black hole information.}
+\end{table}
+
+Unlike holography, which requires a physical extra dimension and exact duality, the $w$-coordinate here serves as a bookkeeping device. Compared to ER=EPR's topological wormhole picture, HFP offers a precise geometric mechanism via projection degeneracy.
+
+\section{Limitations and Future Directions}
+The current formulation has several limitations:
+\begin{itemize}
+\item The projection tensor and warping function are chosen phenomenologically rather than derived from fundamental principles.
+\item The model is developed for static Schwarzschild black holes; extension to rotating and charged cases is needed.
+\item A dynamical action principle for the flux field remains to be developed.
+\end{itemize}
+
+Future work should address these limitations, with particular attention to:
+\begin{enumerate}
+\item Deriving the Page curve for information recovery within this framework.
+\item Generalizing to Kerr and Reissner-Nordström black holes.
+\item Developing experimental signatures, potentially in analog gravity systems.
+\end{enumerate}
+
+\section{Conclusion}
+We have presented a geometric reinterpretation of black hole horizons as loci of projection degeneracy. The framework reproduces standard black hole thermodynamics while reframing the information paradox as a problem of observational accessibility. By treating the vacuum as a hydrodynamic medium with a constitutive conservation law, the model offers a minimalist alternative to more complex approaches.
+
+The HFP framework naturally connects to the microscopic description of virtual particles \cite{Yilmaz2026a} and provides a foundation for cosmological applications \cite{Yilmaz2026e}. Future work will focus on developing a dynamical formulation and exploring observational consequences.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{10}
+
+\bibitem{Yilmaz2026a}
+Yılmaz, K. (2026). 
+\textit{Topological Interpretation of Virtual Particle Qubits: A Hyper-Flux Projection Model in Minkowski Space}. 
+arXiv:YYYY.XXXXX [hep-th].
+
+\bibitem{Yilmaz2026e}
+Yılmaz, K. (2026). 
+\textit{Hyper-Flux Projection Model: Numerical Implementation and Cosmological Implications}. 
+arXiv:YYYY.XXXXX [astro-ph.CO].
+
+\bibitem{Hawking1976}
+Hawking, S. W. (1976). 
+Breakdown of predictability in gravitational collapse. 
+\textit{Physical Review D}, 14(10), 2460–2473.
+
+\bibitem{Maldacena1999}
+Maldacena, J. (1999). 
+The large N limit of superconformal field theories and supergravity. 
+\textit{International Journal of Theoretical Physics}, 38(4), 1113–1133.
+
+\bibitem{Maldacena2013}
+Maldacena, J., \& Susskind, L. (2013). 
+Cool horizons for entangled black holes. 
+\textit{Fortschritte der Physik}, 61(9), 781–811.
+
+\bibitem{Unruh1976}
+Unruh, W. G. (1976). 
+Notes on black-hole evaporation. 
+\textit{Physical Review D}, 14(4), 870–892.
+
+\bibitem{Bekenstein1973}
+Bekenstein, J. D. (1973). 
+Black holes and entropy. 
+\textit{Physical Review D}, 7(8), 2333–2346.
+
+\bibitem{Page1993}
+Page, D. N. (1993). 
+Information in black hole radiation. 
+\textit{Physical Review Letters}, 71(23), 3743–3746.
+
+\end{thebibliography}
+
+\end{document}
