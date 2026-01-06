@@ -1,4 +1,7 @@
 \documentclass[12pt, a4paper]{article}
+\usepackage{amsthm}
+\theoremstyle{remark}
+\newtheorem*{justification}{Justification of Maximal Entanglement}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath, amssymb, amsthm}
@@ -63,16 +66,25 @@ with $p > 0$ and $\ell$ a microscopic length scale. The divergence of $\Phi(r)$ 
 
 \section{Emergent Black Hole Thermodynamics}
 
+% Preamble kısmına eklenecekler:
+% \usepackage{amsthm}
+% \theoremstyle{remark}
+% \newtheorem*{justification}{Justification of Maximal Entanglement}
+
 \subsection{Partial Trace and Mixed States}
 The global state $|\Psi\rangle$ in $(4+1)$ dimensions remains pure. However, tracing over inaccessible degrees of freedom yields the reduced density matrix:
-\[
-\rho_{\text{obs}} = \operatorname{Tr}_{\text{hidden}} |\Psi\rangle\langle\Psi|.
-\]
-The resulting state is mixed and admits an effective modular Hamiltonian $K$:
-\[
-\rho_{\text{obs}} \approx e^{-K}.
-\]
+\begin{equation}
+    \rho_{\text{obs}} = \operatorname{Tr}_{\text{hidden}} \left( |\Psi\rangle\langle\Psi| \right).
+\end{equation}
 
+\begin{justification}
+    We adopt the assumption of maximal entanglement along the $w$-direction. This is not an arbitrary postulate but follows from the \textbf{Principle of Maximum Entropy} (Jaynes, 1957). In the absence of a known microscopic selection rule for the cosmological vacuum, the maximally entangled state represents the least biased description consistent with the macroscopic symmetries. Deviations from this maximality would imply additional, unknown physics.
+\end{justification}
+
+Following this, the resulting state is mixed and admits an effective modular Hamiltonian $K$:
+\begin{equation}
+    \rho_{\text{obs}} \approx e^{-K}.
+\end{equation}
 \subsection{Hawking Temperature}
 By analogy with the Unruh effect \cite{Unruh1976}, the near-horizon structure suggests a thermal spectrum with temperature:
 \[
@@ -170,6 +182,11 @@ Black holes and entropy.
 Page, D. N. (1993). 
 Information in black hole radiation. 
 \textit{Physical Review Letters}, 71(23), 3743–3746.
+
+\bibitem{Jaynes1957}
+Jaynes, E. T. (1957). 
+Information theory and statistical mechanics. 
+\textit{Physical Review}, 106(4), 620–630.
 
 \end{thebibliography}
 
