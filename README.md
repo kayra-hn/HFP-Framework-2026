@@ -42,5 +42,21 @@ The first paper is currently under arXiv moderation (temporary ID: `submit/71377
 - Implementation of cosmological perturbation theory
 
 ---
+## arXiv Submission Status (January 2026)
+
+### Paper 1: Virtual Particle Qubits
+- **First submission:** 2026-01-06
+- **Result:** Rejected by arXiv moderation
+- **Reason:** "Does not contain sufficient original or substantive scholarly research"
+- **Status:** On hold pending revisions
+
+### Papers 2-5: Unsubmitted
+- **Status:** Awaiting Paper 1 resolution
+- **Plan:** May be revised, merged, or submitted to specialized journals
+
+### Current Focus:
+- Revising Paper 1 for improved self-containment
+- Considering alternative publication venues
+- Seeking feedback from physics department members
 
 **Code repository**: https://github.com/kayra-hn/HFP-Framework-2026
