@@ -1,4 +1,3 @@
-# .github/workflows/build.yml
 name: Build
 
 on: [push, pull_request]
@@ -10,23 +9,25 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    # 1. Python kur
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
     
-    # 2. Bağımlılıkları kur (requirements.txt veya direk pip)
     - name: Install dependencies
       run: |
         pip install numpy scipy matplotlib pandas
-        # veya: pip install -r requirements.txt
-    
-    # 3. Test et
-    - name: Test HFP model
+        
+    - name: Run HFP model
       run: |
         python -c "
-        import numpy as np
-        import matplotlib.pyplot as plt
-        print('✓ All dependencies installed')
+        print('Testing HFP model...')
+        try:
+            from hfp_model import HFP_Parameters, Hubble_HFP
+            params = HFP_Parameters()
+            H = Hubble_HFP(1.0, params)
+            print(f'✓ Success! H(1.0) = {H:.2f}')
+        except Exception as e:
+            print(f'✗ Error: {e}')
+            exit(1)
         "
