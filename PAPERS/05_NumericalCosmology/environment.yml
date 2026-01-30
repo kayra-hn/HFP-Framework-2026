@@ -1,0 +1,18 @@
+# environment.yml
+name: hfp-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - ipython
+  - jupyter
+  - pip
+  - pip:
+    - emcee
+    - corner
+    - astropy
