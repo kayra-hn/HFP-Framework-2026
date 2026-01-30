@@ -23,7 +23,7 @@ jobs:
         python -c "
         print('Testing HFP model...')
         try:
-            from hfp_model import HFP_Parameters, Hubble_HFP
+            from HFP_model import HFP_Parameters, Hubble_HFP
             params = HFP_Parameters()
             H = Hubble_HFP(1.0, params)
             print(f'✓ Success! H(1.0) = {H:.2f}')
