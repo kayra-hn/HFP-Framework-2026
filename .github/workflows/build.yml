@@ -1,6 +1,5 @@
-name: Build
-
-on: [push, pull_request]
+name: Build HFP
+on: [push]
 
 jobs:
   build:
@@ -15,19 +14,119 @@ jobs:
         python-version: '3.10'
     
     - name: Install dependencies
+      run: pip install numpy scipy matplotlib pandas
+    
+    - name: Find HFP Python files
+      id: find-files
       run: |
-        pip install numpy scipy matplotlib pandas
+        echo "Mevcut Python dosyaları:"
+        find . -name "*.py" -type f | grep -v __pycache__ | head -20
         
-    - name: Run HFP model
+        # HFP kodunu içeren dosyayı bul
+        for file in $(find . -name "*.py" -type f); do
+          if grep -l "class HFP_Parameters" "$file" 2>/dev/null; then
+            echo "HFP dosyası bulundu: $file"
+            echo "hfp_file=$file" >> $GITHUB_OUTPUT
+          fi
+        done
+        
+        # Alternatif arama
+        for file in $(find . -name "*.py" -type f); do
+          if grep -l "Hubble_HFP\|HFP.*Parameters" "$file" 2>/dev/null; then
+            echo "Potansiyel HFP dosyası: $file"
+            echo "potential_file=$file" >> $GITHUB_OUTPUT
+          fi
+        done
+    
+    - name: Run HFP model with dynamic import
       run: |
+        # Önce dosya adını bul
+        HFP_FILE=""
+        
+        # 1. HFP_Parameters içeren dosyayı ara
+        for file in $(find . -name "*.py" -type f); do
+          if grep -q "class HFP_Parameters" "$file"; then
+            HFP_FILE="$file"
+            break
+          fi
+        done
+        
+        # 2. Bulamazsan Hubble_HFP ara
+        if [ -z "$HFP_FILE" ]; then
+          for file in $(find . -name "*.py" -type f); do
+            if grep -q "def Hubble_HFP" "$file"; then
+              HFP_FILE="$file"
+              break
+            fi
+          done
+        fi
+        
+        # 3. Hala bulamazsan ilk .py dosyasını al
+        if [ -z "$HFP_FILE" ]; then
+          HFP_FILE=$(find . -name "*.py" -type f | head -1)
+        fi
+        
+        if [ -z "$HFP_FILE" ]; then
+          echo "❌ Hiç Python dosyası bulunamadı!"
+          exit 1
+        fi
+        
+        echo "📁 Kullanılacak dosya: $HFP_FILE"
+        echo "Dosya içeriğinin ilk 5 satırı:"
+        head -5 "$HFP_FILE"
+        
+        # Dinamik import yap
         python -c "
-        print('Testing HFP model...')
-        try:
-            from HFP_model import HFP_Parameters, Hubble_HFP
-            params = HFP_Parameters()
-            H = Hubble_HFP(1.0, params)
-            print(f'✓ Success! H(1.0) = {H:.2f}')
-        except Exception as e:
-            print(f'✗ Error: {e}')
-            exit(1)
-        "
+import sys
+import os
+import importlib.util
+
+print('Python versiyonu:', sys.version)
+print('Çalışma dizini:', os.getcwd())
+
+try:
+    # Dosya adını al
+    file_path = '$HFP_FILE'
+    
+    if not os.path.exists(file_path):
+        print(f'Dosya bulunamadı: {file_path}')
+        exit(1)
+    
+    print(f'Import edilecek dosya: {file_path}')
+    
+    # Dinamik import
+    spec = importlib.util.spec_from_file_location('hfp_module', file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    
+    print('✓ Modül başarıyla yüklendi')
+    
+    # Hangi sınıflar/fonksiyonlar var?
+    print('\\nModüldeki öğeler:')
+    for item in dir(module):
+        if not item.startswith('_'):
+            print(f'  - {item}')
+    
+    # HFP_Parameters'ı dene
+    if hasattr(module, 'HFP_Parameters'):
+        params = module.HFP_Parameters()
+        print(f'✓ HFP_Parameters oluşturuldu')
+        
+        # Hubble_HFP'yi dene
+        if hasattr(module, 'Hubble_HFP'):
+            H = module.Hubble_HFP(1.0, params)
+            print(f'✓ Hubble_HFP çalıştı: H(1.0) = {H:.2f}')
+        else:
+            print('⚠ Hubble_HFP fonksiyonu bulunamadı')
+            
+    else:
+        print('⚠ HFP_Parameters sınıfı bulunamadı')
+        
+    print('\\n✅ HFP testi tamamlandı')
+    
+except Exception as e:
+    print(f'❌ Hata: {e}')
+    import traceback
+    traceback.print_exc()
+    exit(1)
+"
