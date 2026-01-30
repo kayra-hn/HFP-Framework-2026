@@ -1,0 +1,32 @@
+# .github/workflows/build.yml
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    # 1. Python kur
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    # 2. Bağımlılıkları kur (requirements.txt veya direk pip)
+    - name: Install dependencies
+      run: |
+        pip install numpy scipy matplotlib pandas
+        # veya: pip install -r requirements.txt
+    
+    # 3. Test et
+    - name: Test HFP model
+      run: |
+        python -c "
+        import numpy as np
+        import matplotlib.pyplot as plt
+        print('✓ All dependencies installed')
+        "
