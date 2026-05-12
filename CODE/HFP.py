@@ -1,5 +1,7 @@
 """
 HFP (Hyper-Flux Projection) Model — v3
+=======================================
+"""
 
 import os
 import warnings
