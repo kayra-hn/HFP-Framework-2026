@@ -12,7 +12,7 @@ from scipy.integrate import quad, odeint, cumulative_trapezoid
 class HFP_Parameters:
     def __init__(self):
         self.C        = 0.5
-        self.alpha    = 1e18      # [DÜZELTMELER v3] α = 1/B₀² için ayarlandı, artık αB₀² = 1
+        self.alpha    = 0.1
         self.B0       = 1.0e-9     # [Tesla]
         self.H0       = 70.0       # [km/s/Mpc]
         self.Omega_m  = 0.3
@@ -39,8 +39,6 @@ class HFP_Parameters:
                 "  Anlamlı sapma için α ~ 1/(B₀²) ≈ 1e18 gerekir.",
                 UserWarning, stacklevel=2
             )
-        else:
-            print("  ✓ Manyetik modülasyon aktif — model ΛCDM'den ayrışıyor.")
         print()
 
 
@@ -245,13 +243,10 @@ def plot_HFP_results(params, output_dir="."):
     ax.axhline(-1, color='k', ls='--', lw=1)
     ax.set_title('Denklem Durumu $w(a)$')
     ax.set_xlabel('$a$'); ax.set_ylabel('$w(a)$')
-    # Otomatik y ekseni limiti: w(a) sapmasına göre ayarlanır
-    w_min, w_max = np.min(w_arr), np.max(w_arr)
-    ax.set_ylim([max(-1.1, w_min - 0.02), min(-0.9, w_max + 0.02)])
-    if params.alpha * params.B0**2 > 0.1:
-        ax.annotate(r'Anlamlı sapma: $\Delta w \sim 10^{-3}$',
-                    xy=(0.05, 0.2), xycoords='axes fraction', fontsize=8,
-                    color='red', bbox=dict(fc='lightyellow', ec='orange', alpha=0.8))
+    ax.set_ylim([-1.0001, -0.9999])
+    ax.annotate(r'$|\Delta w|\sim\mathcal{O}(10^{-20})$',
+                xy=(0.05, 0.2), xycoords='axes fraction', fontsize=8,
+                color='red', bbox=dict(fc='lightyellow', ec='orange', alpha=0.8))
 
     # ── 4. Hubble Karşılaştırması ────────────────────────────────
     ax = axes[1, 0]
@@ -314,7 +309,7 @@ def plot_HFP_results(params, output_dir="."):
         wv        = effective_w_exact(np.array([0.1, 0.5, 1.0]), p_t)
         w_devs.append(np.mean(np.abs(wv + 1)))
     ax.loglog(alphas, w_devs, color='royalblue', lw=2)
-    ax.axvline(params.alpha, color='red',    ls='--', lw=1.5, label=f'Seçilen α={params.alpha:.1e}')
+    ax.axvline(params.alpha, color='red',    ls='--', lw=1.5, label=f'Seçilen α={params.alpha}')
     critical = 1 / params.B0**2
     ax.axvline(critical,     color='orange', ls=':',  lw=1.5,
                label=r'$\alpha=1/B_0^2$' + f'\n(αB₀²=1)')
@@ -384,10 +379,6 @@ if __name__ == "__main__":
         print(f"  D(a={ai}) = {Di:.6f}")
 
     print("\n" + "=" * 70)
-    regime = params.alpha * params.B0**2
-    if regime >= 1:
-        print("✓ Model ΛCDM'den gözlemlenebilir düzeyde ayrışıyor. Öngörüler test edilebilir.")
-    else:
-        print("ÖZET: mevcut parametrelerle HFP ≡ ΛCDM (sayısal olarak doğrulandı).")
-        print("Anlamlı test için α ≈ 1/B₀² ≈ {:.1e} gerekir.".format(1/params.B0**2))
+    print("ÖZET: mevcut parametrelerle HFP ≡ ΛCDM (sayısal olarak doğrulandı).")
+    print("Anlamlı test için α ≈ 1/B₀² ≈ {:.1e} gerekir.".format(1/params.B0**2))
     print("=" * 70)
