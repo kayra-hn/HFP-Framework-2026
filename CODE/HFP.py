@@ -20,7 +20,7 @@ from scipy.integrate import odeint, cumulative_trapezoid
 class HFP_Parameters:
     def __init__(self):
         self.C        = 0.5
-        self.alpha    = 1e18               # αB₀² = 1 → anlamlı sapma
+        self.alpha    = 1               # αB₀² = 1 → anlamlı sapma
         self.B0       = 1.0e-9             # [Tesla]
         self.H0       = 70.0               # [km/s/Mpc]
         self.Omega_m  = 0.3
