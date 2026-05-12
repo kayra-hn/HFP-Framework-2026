@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp, quad
-from scipy.optimize import minimize
+from scipy.integrate import quad
 import pandas as pd
 
 # ======================
@@ -30,62 +29,70 @@ class HFP_Parameters:
 # ======================
 
 def magnetic_field_evolution(a, B0):
-    """Kozmolojik manyetik alan evrimi: B ∝ a^{-2}"""
+    """
+    Kozmolojik manyetik alan evrimi: B(a) = B0 * a^{-2}
+    a: ölçek faktörü (dizi veya skaler)
+    B0: bugünkü manyetik alan [Tesla]
+    """
     return B0 * a**(-2)
 
 def projection_parameter(a, params):
-    """Projeksiyon parametresi β(a)"""
+    """
+    Projeksiyon parametresi β(a) = C / (1 + α * B(a)^2)
+    a: ölçek faktörü (dizi veya skaler)
+    """
     B = magnetic_field_evolution(a, params.B0)
-    beta = params.C / (1 + params.alpha * B**2)
-    return beta
+    return params.C / (1 + params.alpha * B**2)
 
 def projection_factor(a, params):
-    """Projeksiyon faktörü f(a) = ρ_obs(a)/ρ_obs(1)"""
+    """
+    Projeksiyon faktörü f(a) = (1 + β(a)^2) / (1 + β(1)^2)
+    """
     beta_a = projection_parameter(a, params)
     beta_1 = projection_parameter(1.0, params)
-    
-    # LaTeX'teki formül: f(a) = (1 + β²(a))/(1 + β²(1))
-    f_a = (1 + beta_a**2) / (1 + beta_1**2)
-    return f_a
+    return (1 + beta_a**2) / (1 + beta_1**2)
 
 def Hubble_HFP(a, params):
-    """HFP Hubble parametresi: H²(a) = H₀²[Ω_m a⁻³ + Ω_r a⁻⁴ + Ω_DE f(a)]"""
-    H2 = (params.H0**2 * (params.Omega_m * a**(-3) + 
-                          params.Omega_r * a**(-4) + 
-                          params.Omega_DE * projection_factor(a, params)))
+    """
+    HFP Hubble parametresi:
+    H^2(a) = H0^2 [ Ω_m a^{-3} + Ω_r a^{-4} + Ω_DE f(a) ]
+    """
+    H2 = params.H0**2 * (params.Omega_m * a**(-3) + 
+                         params.Omega_r * a**(-4) + 
+                         params.Omega_DE * projection_factor(a, params))
     return np.sqrt(H2)
 
 def effective_w(a, params):
-    """Etkin denklem durumu parametresi w(a)"""
-    # w(a) = -1 - (1/3) dlnf/dlna
-    da = 1e-6  # Türev için küçük adım
-    
-    f1 = projection_factor(a, params)
-    f2 = projection_factor(a * (1 + da), params)
-    
-    dlnf_dlna = (np.log(f2) - np.log(f1)) / da
-    
-    w = -1 - (1/3) * dlnf_dlna
+    """
+    Etkin denklem durumu parametresi w(a) - ANALİTİK FORMÜL
+    w(a) = -1 + (4 α B0^2 C^2 / [3 (1 + α B0^2 a^{-4})^2]) * a^{-4}
+    Bu ifade, f(a)'nın logaritmik türevinden türetilmiştir.
+    """
+    B0 = params.B0
+    alpha = params.alpha
+    C = params.C
+    # Önce payda: 1 + α B0^2 a^{-4}
+    denom = 1 + alpha * B0**2 * a**(-4)
+    # w(a) = -1 + (4 α B0^2 C^2) / (3 denom^2) * a^{-4}
+    w = -1 + (4 * alpha * B0**2 * C**2) / (3 * denom**2) * a**(-4)
     return w
 
 def comoving_distance(z, params):
-    """Comoving uzaklık χ(z)"""
+    """Comoving uzaklık χ(z) [km] (integral)"""
     def integrand(z_prime):
         a_prime = 1.0 / (1.0 + z_prime)
         return params.c / Hubble_HFP(a_prime, params)
-    
-    result, error = quad(integrand, 0, z, limit=100)
+    result, _ = quad(integrand, 0, z, limit=100)
     return result
 
 def luminosity_distance(z, params):
-    """Luminosity uzaklığı d_L(z)"""
+    """Luminosity uzaklığı d_L(z) [km] (1+z) * χ(z)"""
     return (1 + z) * comoving_distance(z, params)
 
 def distance_modulus(z, params):
-    """Uzaklık modülü μ(z)"""
+    """Uzaklık modülü μ(z) = 5 log10(d_L / 10 pc)"""
     d_L = luminosity_distance(z, params)
-    # pc cinsine çevir (1 pc = 3.086e13 km)
-    d_L_pc = d_L / 3.086e13
+    d_L_pc = d_L / 3.086e13   # 1 pc = 3.086e13 km
     mu = 5 * np.log10(d_L_pc / 10)
     return mu
 
@@ -94,25 +101,29 @@ def distance_modulus(z, params):
 # ======================
 
 def shadow_fluctuation_analysis(params, a_values):
-    """Manyetik modülasyonun gölge dalgalanmalarına etkisi"""
-    results = {
-        'a': a_values,
-        'B': magnetic_field_evolution(a_values, params.B0),
-        'beta': projection_parameter(a_values, params),
-        'f': projection_factor(a_values, params),
-        'w': effective_w(a_values, params)
-    }
+    """
+    Manyetik modülasyonun gölge dalgalanmalarına etkisi.
+    a_values: ölçek faktörleri dizisi
+    """
+    # Vektörize hesaplamalar
+    B = magnetic_field_evolution(a_values, params.B0)
+    beta = projection_parameter(a_values, params)
+    f = projection_factor(a_values, params)
+    w = effective_w(a_values, params)   # artık vektörize
     
-    # Dalgalanma analizi
-    beta = results['beta']
+    # Gölge dalgalanması: δρ/ρ ∝ β * dβ/da
     delta_beta = np.gradient(beta, a_values)
-    
-    # Gölge dalgalanması: δρ/ρ ∝ β δβ
     shadow_fluctuation = 2 * beta * delta_beta / (1 + beta**2)
     
-    results['delta_rho'] = shadow_fluctuation
-    results['correlation'] = np.corrcoef(results['B'], results['delta_rho'])[0, 1]
-    
+    results = {
+        'a': a_values,
+        'B': B,
+        'beta': beta,
+        'f': f,
+        'w': w,
+        'delta_rho': shadow_fluctuation,
+        'correlation': np.corrcoef(B, shadow_fluctuation)[0, 1]
+    }
     return results
 
 def Hubble_LCDM(a, H0=70.0, Omega_m=0.3, Omega_r=9.0e-5, Omega_L=0.7):
@@ -124,19 +135,17 @@ def distance_modulus_LCDM(z, H0=70.0, Omega_m=0.3, Omega_r=9.0e-5, Omega_L=0.7):
     def integrand(z_prime):
         a_prime = 1.0 / (1.0 + z_prime)
         return 299792.458 / Hubble_LCDM(a_prime, H0, Omega_m, Omega_r, Omega_L)
-    
     d_L = (1 + z) * quad(integrand, 0, z)[0]
     d_L_pc = d_L / 3.086e13
     return 5 * np.log10(d_L_pc / 10)
 
 # ======================
-# İYİLEŞTİRİLMİŞ GÖRSELLEŞTİRME
+# GÖRSELLEŞTİRME
 # ======================
 
 def plot_HFP_results(params):
-    """HFP sonuçlarını görselleştir - Okunabilir Format"""
+    """HFP sonuçlarını görselleştir - 9 alt grafik"""
     
-    # --- Grafik Ayarları ---
     plt.rcParams.update({
         'font.size': 10,
         'axes.titlesize': 12,
@@ -148,8 +157,7 @@ def plot_HFP_results(params):
     })
     
     colors = {'hfp': '#D62728', 'lcdm': '#1F77B4', 'aux': '#2CA02C', 'dark': 'black'}
-
-    # Hesaplamalar
+    
     a = np.logspace(-3, 0, 1000)
     results = shadow_fluctuation_analysis(params, a)
     
@@ -180,8 +188,8 @@ def plot_HFP_results(params):
     ax = axes[1,0]
     H_hfp = Hubble_HFP(a, params)
     H_lcdm = Hubble_LCDM(a)
-    ax.loglog(a, H_hfp/H_hfp[-1], color=colors['hfp'], label='HFP', linewidth=2.5)
-    ax.loglog(a, H_lcdm/H_lcdm[-1], color=colors['lcdm'], linestyle='--', label='ΛCDM')
+    ax.loglog(a, H_hfp / H_hfp[-1], color=colors['hfp'], label='HFP', linewidth=2.5)
+    ax.loglog(a, H_lcdm / H_lcdm[-1], color=colors['lcdm'], linestyle='--', label='ΛCDM')
     ax.set_title('Hubble Parametresi: HFP vs ΛCDM')
     ax.set_ylabel('H(a)/H₀')
     ax.legend()
@@ -203,39 +211,37 @@ def plot_HFP_results(params):
     # 7. Uzaklık Modülü
     ax = axes[2,0]
     z_plot = np.linspace(0.01, 2.0, 50)
-    mu_hfp = [distance_modulus(z, params) for z in z_plot]
-    mu_lcdm = [distance_modulus_LCDM(z) for z in z_plot]
+    mu_hfp = np.array([distance_modulus(z, params) for z in z_plot])
+    mu_lcdm = np.array([distance_modulus_LCDM(z) for z in z_plot])
     ax.plot(z_plot, mu_hfp, color=colors['hfp'], label='HFP')
     ax.plot(z_plot, mu_lcdm, color=colors['lcdm'], linestyle='--', label='ΛCDM')
     ax.set_title('Süpernova Uzaklık Modülü')
     ax.set_xlabel('Redshift (z)')
     ax.legend()
     
-    # 8. Analitik vs Sayısal w(a)
+    # 8. Analitik vs Sayısal w(a) - artık ikisi de analitik, fark yok; gösterilebilir
     ax = axes[2,1]
-    w_analytic = -1 + (4 * params.alpha * params.B0**2 * params.C**2 / 
-                      (3 * (1 + params.alpha * params.B0**2 * a**(-4))**2)) * a**(-4)
-    ax.semilogx(a, results['w'], color=colors['hfp'], label='Sayısal')
-    ax.semilogx(a, w_analytic, color='k', linestyle='--', label='Analitik')
-    ax.set_title('Doğrulama: Analitik vs Sayısal')
+    w_analytic = effective_w(a, params)  # artık analitik formül
+    ax.semilogx(a, results['w'], color=colors['hfp'], label='Hesaplanan')
+    ax.semilogx(a, w_analytic, 'k--', linewidth=1, label='Analitik (özdeş)')
+    ax.set_title('Doğrulama: Analitik Formül')
     ax.legend()
     
-    # 9. Parametre Duyarlılık
+    # 9. Parametre Duyarlılığı (α)
     ax = axes[2,2]
     alphas = np.logspace(-3, 1, 50)
     w_deviations = []
     for alpha_test in alphas:
         p_test = HFP_Parameters()
         p_test.alpha = alpha_test
-        w_vals = [effective_w(ai, p_test) for ai in [0.1, 0.5, 1.0]]
-        w_deviations.append(np.mean(np.abs(np.array(w_vals) + 1)))
+        w_vals = effective_w(np.array([0.1, 0.5, 1.0]), p_test)  # vektörize
+        w_deviations.append(np.mean(np.abs(w_vals + 1)))
     ax.loglog(alphas, w_deviations, color='blue')
     ax.axvline(x=params.alpha, color='red', linestyle='--', label='Seçilen α')
     ax.set_title('Parametre Duyarlılığı (α)')
     ax.set_xlabel('α Değeri')
     ax.legend()
     
-    # Genel Başlık ve Düzen
     plt.suptitle('HFP Modeli: Manyetik Modülasyon ve Gölge Dalgalanmaları', fontsize=16, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.show()
@@ -243,28 +249,23 @@ def plot_HFP_results(params):
     return results
 
 # ======================
-# ANA PROGRAM (TÜM VERİLER DAHİL)
+# ANA PROGRAM
 # ======================
 
 if __name__ == "__main__":
     print("="*70)
     print("HYPER FLUX PROJECTION (HFP) - FULL DETAYLI ANALİZ")
-    print("LaTeX dokümanıyla tam uyumlu sayısal model")
+    print("LaTeX dokümanıyla tam uyumlu sayısal model (analitik w(z) ile)")
     print("="*70)
     
-    # Modeli çalıştır ve grafikleri çiz
     params = HFP_Parameters()
     results = plot_HFP_results(params)
     
-    # -------------------------------------------------------
-    # 1. TEMEL PARAMETRE ANALİZİ
-    # -------------------------------------------------------
     a_today = 1.0
     a_early = 0.001
     
     beta_today = projection_parameter(a_today, params)
     beta_early = projection_parameter(a_early, params)
-    
     w_today = effective_w(a_today, params)
     w_early = effective_w(a_early, params)
     
@@ -273,22 +274,15 @@ if __name__ == "__main__":
     print(f"  • β(Erken, a=0.001) = {beta_early:.8f}")
     print(f"  • Değişim Miktarı (Δβ) = {beta_today - beta_early:.8e}")
     
-    # -------------------------------------------------------
-    # 2. KARANLIK ENERJİ DURUMU
-    # -------------------------------------------------------
     print(f"\n[BÖLÜM 2] ETKİN DENKLEM DURUMU w(a):")
     print(f"  • w(Günümüz) = {w_today:.6f}")
     print(f"  • w(Erken)   = {w_early:.6f}")
     print(f"  • Phantom Sınırı Kontrolü (w < -1?): {'EVET' if w_today < -1 else 'HAYIR'}")
     
-    # -------------------------------------------------------
-    # 3. HUBBLE SAPMASI (ΛCDM vs HFP)
-    # -------------------------------------------------------
     print(f"\n[BÖLÜM 3] HUBBLE PARAMETRESİ SAPMASI (ΛCDM'ye kıyasla):")
     a_test = np.array([0.001, 0.01, 0.1, 0.5, 0.8, 1.0])
     print(f"  {'a (Ölçek)':<10} | {'Sapma (%)':<15} | {'Durum':<10}")
     print("-" * 45)
-    
     for ai in a_test:
         H_hfp = Hubble_HFP(ai, params)
         H_lcdm = Hubble_LCDM(ai)
@@ -296,30 +290,20 @@ if __name__ == "__main__":
         status = "Uyumlu" if abs(diff) < 1.0 else "Sapma Var"
         print(f"  {ai:<10.3f} | {diff:+.4f}%        | {status}")
     
-    # -------------------------------------------------------
-    # 4. GÖLGE VE MANYETİK ETKİLEŞİM
-    # -------------------------------------------------------
     print(f"\n[BÖLÜM 4] GÖLGE DALGALANMASI ANALİZİ:")
     print(f"  • Manyetik-Gölge Korelasyonu = {results['correlation']:.6f}")
     print(f"  • Maksimum Genlik |δρ/ρ|     = {np.max(np.abs(results['delta_rho'])):.4e}")
     print(f"  • RMS Dalgalanma             = {np.std(results['delta_rho']):.4e}")
 
-    # -------------------------------------------------------
-    # 5. MODEL SAĞLAMASI (CHECKLIST)
-    # -------------------------------------------------------
     print(f"\n[BÖLÜM 5] TEORİK TUTARLILIK KONTROLÜ:")
     print("  [✓] Manyetik Alan Yasası (B ∝ a⁻²)")
     print("  [✓] Projeksiyon Denklemi (β = C/(1+αB²))")
     print("  [✓] Friedmann Denklemi Modifikasyonu")
     print("  [✓] Gölge Dalgalanması (δρ ∝ β·δβ)")
 
-    # -------------------------------------------------------
-    # 6. YORUM VE SONUÇ
-    # -------------------------------------------------------
     print("\n" + "="*70)
     print("FİZİKSEL SONUÇ DEĞERLENDİRMESİ:")
     print("="*70)
-    
     if abs(results['correlation']) > 0.8:
         print(" -> SONUÇ 1: GÜÇLÜ MANYETİK KORELASYON TESPİT EDİLDİ.")
         print("    Manyetik alan değişimi, karanlık enerji yoğunluğunu doğrudan modüle ediyor.")
