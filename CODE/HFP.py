@@ -1,31 +1,5 @@
 """
 HFP (Hyper-Flux Projection) Model — v3
-=======================================
-v2'den yapılan düzeltmeler (9 madde):
-
-[#1] growth_factor: dHda artık analitik türevle hesaplanıyor.
-     Küçük a'da sayısal kararsızlık tamamen ortadan kalktı.
-
-[#2] Hdot_over_H: dHda analitiği kullandığından gürültü yok.
-
-[#3] Başlangıç koşulu notu: a_start = 1e-3, madde-radyasyon
-     eşitliği a_eq ~ 3e-4 sonrasında. D ≈ a iyi bir yaklaşım;
-     uyarı olarak belgelendi.
-
-[#4] w_paper_claim: eps artık parametre; grafik birden fazla
-     ε değerini gösteriyor.
-
-[#5] distance_modulus: cumtrapz ile vektörize edildi, O(n) quad.
-
-[#6] alpha duyarlılığı: üst sınır 1e21'e çıkarıldı, αB₀²≈1
-     görünür hale geldi.
-
-[#7] effective_w_exact denom**2 türevi: onaylandı, değişmedi.
-
-[#8] total_omega kontrolü: onaylandı, değişmedi.
-
-[#9] savefig: os.path.join + varsayılan göreli yol kullanılıyor.
-"""
 
 import os
 import warnings
