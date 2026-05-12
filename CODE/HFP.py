@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 """
-HFP (Hyper-Flux Projection) Model — v3
+HFP (Hyper-Flux Projection) Model - v3
 =======================================
 """
 
@@ -27,20 +28,24 @@ class HFP_Parameters:
     def check_physics_consistency(self):
         regime = self.alpha * self.B0**2
         total  = self.Omega_m + self.Omega_r + self.Omega_DE
-        print("\n[FİZİK TUTARLILIK KONTROLÜ]")
-        print(f"  αB₀²  = {regime:.2e}  "
-              f"({'<< 1 → ΛCDM ile özdeş' if regime < 1e-6 else '≥ 1 → anlamlı sapma'})")
-        print(f"  ΣΩᵢ   = {total:.5f}  "
-              f"({'düz evren ✓' if abs(total - 1) < 0.01 else 'UYARI: düzlük ihlali'})")
-        # [#3] başlangıç koşulu notu
+        print("\n[FIZIK TUTARLILIK KONTROLU]")
+
+        # Unicode ozel karakterler (subscript/superscript) ayri str olarak
+        label_regime = "<< 1 --> LCDM ile ozdes" if regime < 1e-6 else ">= 1 --> anlamli sapma"
+        print(f"  aB0^2 = {regime:.2e}  ({label_regime})")
+
+        label_omega = "duz evren OK" if abs(total - 1) < 0.01 else "UYARI: duzluk ihlali"
+        print(f"  Sum_Omega = {total:.5f}  ({label_omega})")
+
+        # [#3] baslangic kosulu notu
         a_eq = self.Omega_r / self.Omega_m
-        print(f"  a_eq  = {a_eq:.2e}  "
-              f"(a_start=1e-3 > a_eq → D≈a başlangıcı geçerli)")
+        print(f"  a_eq = {a_eq:.2e}  (a_start=1e-3 > a_eq: D~a baslangici gecerli)")
+
         if regime < 1e-6:
             warnings.warn(
-                f"\n  [FIZ-1] αB₀² = {regime:.2e} << 1.\n"
-                "  Manyetik etki ihmal edilebilir → model ΛCDM ile özdeş.\n"
-                "  Anlamlı sapma için α ~ 1/(B₀²) ≈ 1e18 gerekir.",
+                "\n  [FIZ-1] aB0^2 = {:.2e} << 1.\n"
+                "  Manyetik etki ihmal edilebilir -- model LCDM ile ozdes.\n"
+                "  Anlamli sapma icin alpha ~ 1/B0^2 ~ 1e18 gerekir.".format(regime),
                 UserWarning, stacklevel=2
             )
         print()
@@ -51,12 +56,12 @@ class HFP_Parameters:
 # ============================================================
 
 def magnetic_field(a, B0):
-    """B(a) = B₀ · a⁻²"""
+    """B(a) = B0 · a-^2"""
     return B0 * a**(-2)
 
 
 def beta(a, params):
-    """β(a) = C / (1 + αB(a)²)"""
+    """β(a) = C / (1 + αB(a)^2)"""
     denom = 1 + params.alpha * params.B0**2 * a**(-4)
     return params.C / denom
 
@@ -68,7 +73,7 @@ def _dbeta_da(a, params):
 
 
 def projection_factor(a, params):
-    """f(a) = (1 + β²(a)) / (1 + β²(1))"""
+    """f(a) = (1 + β^2(a)) / (1 + β^2(1))"""
     b1 = beta(1.0, params)
     return (1 + beta(a, params)**2) / (1 + b1**2)
 
@@ -87,11 +92,11 @@ def dHubble_da(a, params):
     """
     dH/da analitik hesabı.
 
-    H²(a) = H₀² [Ωₘ a⁻³ + Ωᵣ a⁻⁴ + Ω_DE f(a)]
+    H^2(a) = H0^2 [Ωₘ a-^3 + Ωᵣ a-⁴ + Ω_DE f(a)]
 
-    d(H²)/da = H₀² [-3Ωₘ a⁻⁴ - 4Ωᵣ a⁻⁵ + Ω_DE df/da]
+    d(H^2)/da = H0^2 [-3Ωₘ a-⁴ - 4Ωᵣ a-⁵ + Ω_DE df/da]
 
-    dH/da = d(H²)/da / (2H)
+    dH/da = d(H^2)/da / (2H)
     """
     dE2_da = (- 3 * params.Omega_m  * a**(-4)
               - 4 * params.Omega_r  * a**(-5)
@@ -101,7 +106,7 @@ def dHubble_da(a, params):
 
 
 def Hubble_HFP(a, params):
-    """H(a) = H₀ √[Ωₘ a⁻³ + Ωᵣ a⁻⁴ + Ω_DE f(a)]"""
+    """H(a) = H0 √[Ωₘ a-^3 + Ωᵣ a-⁴ + Ω_DE f(a)]"""
     E2 = (params.Omega_m  * a**(-3) +
           params.Omega_r  * a**(-4) +
           params.Omega_DE * projection_factor(a, params))
@@ -182,7 +187,7 @@ def growth_factor(params, a_array):
     """
     Madde yoğunluğu büyüme faktörü D(a).
 
-    ODE: D'' + (3/a + H'/H) D' = (3/2) Ωₘ H₀² / (H² a³) · D
+    ODE: D'' + (3/a + H'/H) D' = (3/2) Ωₘ H0^2 / (H^2 a^3) · D
 
     [#1] dH/da artık analitik (dHubble_da). Küçük a'da sayısal
          kararsızlık yok.
@@ -298,12 +303,12 @@ def plot_HFP_results(params, output_dir="."):
     ax.plot(z_sn, dmu, color='teal', lw=2)
     ax.axhline(0, color='k', ls='--', lw=1)
     ax.set_title(r'$\Delta\mu_{\rm HFP-\Lambda CDM}$ [mmag]')
-    ax.set_xlabel('$z$'); ax.set_ylabel(r'$\Delta\mu$ [×10⁻³ mag]')
-    ax.annotate(f'max |Δμ| = {np.max(np.abs(dmu)):.4f} mmag',
+    ax.set_xlabel('$z$'); ax.set_ylabel(r'$\Delta\mu$ [$\times 10^{-3}$ mag]')
+    ax.annotate('max |d_mu| = {:.4f} mmag'.format(np.max(np.abs(dmu))),
                 xy=(0.05, 0.85), xycoords='axes fraction', fontsize=9,
                 bbox=dict(fc='lightcyan', ec='teal', alpha=0.8))
 
-    # ── 9. [#6] Parametre Duyarlılığı — αB₀²≈1 görünür ──────────
+    # ── 9. [#6] Parametre Duyarlılığı — αB0^2≈1 görünür ──────────
     ax     = axes[2, 2]
     alphas = np.logspace(-3, 21, 100)            # üst sınır 1e21
     w_devs = []
@@ -313,12 +318,12 @@ def plot_HFP_results(params, output_dir="."):
         wv        = effective_w_exact(np.array([0.1, 0.5, 1.0]), p_t)
         w_devs.append(np.mean(np.abs(wv + 1)))
     ax.loglog(alphas, w_devs, color='royalblue', lw=2)
-    ax.axvline(params.alpha, color='red',    ls='--', lw=1.5, label=f'Seçilen α={params.alpha}')
+    ax.axvline(params.alpha, color='red',    ls='--', lw=1.5, label='Secilen alpha={}'.format(params.alpha))
     critical = 1 / params.B0**2
     ax.axvline(critical,     color='orange', ls=':',  lw=1.5,
-               label=r'$\alpha=1/B_0^2$' + f'\n(αB₀²=1)')
+               label=r'$\alpha=1/B_0^2$  (aB0^2=1)')
     ax.axhline(0.01,         color='green',  ls='-.', alpha=0.7, label='|w+1|=0.01')
-    ax.set_title('[#6] Duyarlılık: αB₀²≈1 görünür')
+    ax.set_title('[#6] Duyarlılık: aB0^2 ~ 1 gorunur')
     ax.set_xlabel(r'$\alpha$'); ax.legend(fontsize=7)
 
     plt.tight_layout()
@@ -383,6 +388,6 @@ if __name__ == "__main__":
         print(f"  D(a={ai}) = {Di:.6f}")
 
     print("\n" + "=" * 70)
-    print("ÖZET: mevcut parametrelerle HFP ≡ ΛCDM (sayısal olarak doğrulandı).")
-    print("Anlamlı test için α ≈ 1/B₀² ≈ {:.1e} gerekir.".format(1/params.B0**2))
+    print("OZET: mevcut parametrelerle HFP = LCDM (sayisal olarak dogrulandi).")
+    print("Anlamli test icin alpha ~ 1/B0^2 ~ {:.1e} gerekir.".format(1/params.B0**2))
     print("=" * 70)
